@@ -975,7 +975,11 @@ with ui.row().classes('w-full gap-4 p-4'):
                     all_measurements = load_measurements()
                     notif.message = f'Verarbeite {len(all_measurements)} Messungen...'
                     
-                    # Grid aktualisieren
+                    # Grid aktualisieren (unter Berücksichtigung des aktuellen Zeitfilters)
+                    sel = timeframe_select.value
+                    filtered_after_reload = (
+                        all_measurements if sel == 'all' else filter_measurements_by_timeframe(all_measurements, int(sel))
+                    )
                     new_grid_data = [
                         {
                             'datetime': m['datetime'].isoformat(),
@@ -985,7 +989,7 @@ with ui.row().classes('w-full gap-4 p-4'):
                             'os': m['os'],
                             'browser': m['browser'],
                         }
-                        for m in all_measurements
+                        for m in filtered_after_reload
                     ]
                     grid.options['rowData'] = new_grid_data
                     grid.update()
@@ -1009,7 +1013,8 @@ with ui.row().classes('w-full gap-4 p-4'):
                     stats_table.update()
                     
                     notif.message = 'Plot wird aktualisiert...'
-                    update_line_plot_data()
+                    # Plot und globalen Zustand auf den gefilterten Bestand setzen
+                    update_line_plot_data(filtered_after_reload)
                     
                     notif.message = f'✓ {len(all_measurements)} Messungen geladen'
                     notif.type = 'positive'
@@ -1056,7 +1061,7 @@ with ui.row().classes('w-full gap-4 p-4'):
                                 '30': 'Letzte 30 Tage',
                                 '90': 'Letzte 90 Tage',
                             },
-                            value='all',
+                            value='30',
                             label='Zeitraum'
                         ).classes('w-full')
                         
