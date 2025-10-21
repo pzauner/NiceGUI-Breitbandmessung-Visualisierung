@@ -119,18 +119,40 @@ docker compose up -d
 
 Danach ist die App unter `http://localhost:9191` erreichbar.
 
-### 4) Quickstart: docker-compose per curl/wget herunterladen und starten
+### 4) Quickstart
+
+Variante A (empfohlen): Repository klonen und starten
 
 ```bash
-# Mit curl
+git clone https://github.com/pzauner/NiceGUI-Breitbandmessung-Visualisierung.git
+cd NiceGUI-Breitbandmessung-Visualisierung
+# Optional: config.yaml anpassen
+docker compose up -d --build
+```
+
+Variante B: Einzelne Dateien per curl/wget laden und starten (benötigt Dockerfile & Quellcode)
+
+```bash
+# Projektverzeichnis anlegen
+mkdir -p NiceGUI-Breitbandmessung-Visualisierung && cd $_
+
+# docker-compose & Dockerfile & Konfiguration laden
 curl -fsSL -o docker-compose.yml \
   https://raw.githubusercontent.com/pzauner/NiceGUI-Breitbandmessung-Visualisierung/main/docker-compose.yml
+curl -fsSL -o Dockerfile \
+  https://raw.githubusercontent.com/pzauner/NiceGUI-Breitbandmessung-Visualisierung/main/Dockerfile
+curl -fsSL -o config.yaml \
+  https://raw.githubusercontent.com/pzauner/NiceGUI-Breitbandmessung-Visualisierung/main/config.yaml
 
-# Alternativ mit wget
-wget -O docker-compose.yml \
-  https://raw.githubusercontent.com/pzauner/NiceGUI-Breitbandmessung-Visualisierung/main/docker-compose.yml
+# Quellcode (main.py, pyproject.toml) laden
+curl -fsSL -o main.py \
+  https://raw.githubusercontent.com/pzauner/NiceGUI-Breitbandmessung-Visualisierung/main/main.py
+curl -fsSL -o pyproject.toml \
+  https://raw.githubusercontent.com/pzauner/NiceGUI-Breitbandmessung-Visualisierung/main/pyproject.toml
 
-# Optional: lokale config anpassen (siehe config.yaml Abschnitt)
+# Optional: README für Referenz
+curl -fsSL -o README.md \
+  https://raw.githubusercontent.com/pzauner/NiceGUI-Breitbandmessung-Visualisierung/main/README.md
 
 # Starten
 docker compose up -d --build
