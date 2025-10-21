@@ -167,7 +167,7 @@ Diese Visualisierung arbeitet mit CSV-Dateien aus diesem Projekt: [`fabianbees/b
 - Stelle sicher, dass die erzeugten CSVs im Host-Dateisystem liegen und per Volume in den Container gemountet werden (Standard in dieser App: `/storage/data/messprotokolle`).
 - Dateinamensmuster laut Vorgabe: `Breitbandmessung_DD_MM_YYYY_HH_MM_SS.csv`.
 
-Beispiel (Volume-Mount in `docker-compose.yml` dieser App):
+Beispiel (Volume-Mount in `docker-compose.yml` dieser App) inkl. Flag zum Überschreiben des CSV-Pfads:
 
 ```yaml
 services:
@@ -175,6 +175,7 @@ services:
     volumes:
       - ./config.yaml:/app/config.yaml:ro
       - /pfad/zu/deinen/csvs:/storage/data/messprotokolle:ro
+    command: ["python", "main.py", "--data-path", "/storage/data/messprotokolle"]
 ```
 
 ## Projekt mit uv & pyproject.toml
@@ -188,7 +189,7 @@ Das Projekt nutzt:
 uv add <paketname>
 
 # Direkt starten
-uv run main.py
+uv run main.py --data-path /pfad/zu/csvs
 ```
 
 Dokumentation: https://docs.astral.sh/uv/

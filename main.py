@@ -18,10 +18,16 @@ matplotlib.use('Agg')
 # ============================================================================
 # KONFIGURATION LADEN
 # ============================================================================
+import argparse
+
+parser = argparse.ArgumentParser(add_help=False)
+parser.add_argument('--data-path', dest='data_path', type=str, default=None)
+args, _ = parser.parse_known_args()
+
 with open('config.yaml', 'r') as f:
     config = yaml.safe_load(f)
 
-MEASUREMENTS_PATH = Path(config['data']['measurements_path'])
+MEASUREMENTS_PATH = Path(args.data_path) if args.data_path else Path(config['data']['measurements_path'])
 
 # ============================================================================
 # DATENLADEN UND PARSING
@@ -260,7 +266,13 @@ def markdown_to_pdf(markdown_content: str, rows: List[Dict], filename: str = "me
     measurements_table.setStyle(get_header_table_style())
     story.append(measurements_table)
     
-    doc.build(story)
+    # PDF-Metadaten setzen
+    def _set_info(canvas, _doc):
+        canvas.setTitle('Breitbandmessung - Messdaten Export')
+        canvas.setAuthor('https://github.com/pzauner/NiceGUI-Breitbandmessung-Visualisierung')
+        canvas.setSubject('Messdaten-Export')
+
+    doc.build(story, onFirstPage=_set_info, onLaterPages=_set_info)
     buffer.seek(0)
     return buffer.getvalue()
 
@@ -363,7 +375,13 @@ def generate_bnetza_pdf(result: Dict, contract_download: float, contract_upload:
     measurements_table.setStyle(get_header_table_style())
     story.append(measurements_table)
     
-    doc.build(story)
+    # PDF-Metadaten setzen
+    def _set_info(canvas, _doc):
+        canvas.setTitle('BNetzA Prüfbericht')
+        canvas.setAuthor('https://github.com/pzauner/NiceGUI-Breitbandmessung-Visualisierung')
+        canvas.setSubject('BNetzA Prüfbericht zur erheblichen, kontinuierlichen oder regelmäßig wiederkehrenden Abweichung bei der Geschwindigkeit bei Festnetz-Internetzugängen')
+
+    doc.build(story, onFirstPage=_set_info, onLaterPages=_set_info)
     buffer.seek(0)
     return buffer.getvalue()
 
@@ -792,9 +810,9 @@ with ui.row().classes('w-full gap-4 p-4'):
                 ],
                 'rowData': grid_data,
                 'rowSelection': {'mode': 'multiRow'},
-                'pagination': {'pageSize': 10},
-                'paginationPageSize': 10,
-            }).classes('max-h-96 w-full')
+                'pagination': {'pageSize': 25},
+                'paginationPageSize': 25,
+            }).classes('max-h-[70vh] w-full')
             
             # Export-Buttons
             async def export_pdf():
