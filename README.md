@@ -1,6 +1,19 @@
 # Breitbandmessung Visualisierung
 
-Eine moderne Web-Anwendung zur Visualisierung und Analyse von Breitbandmessungsdaten mit NiceGUI.
+Eine moderne Web-Anwendung zur Visualisierung und Analyse von automatisiert aggregierten [Breitbandmessungsdaten](https://github.com/fabianbees/breitbandmessung-docker) mit NiceGUI.
+
+## Überblick
+
+![Overview](images/overview.png)
+
+Weitere Screenshots & Features:
+
+- Minderleistungsprüfungsbericht (PDF-Export): zeigt eine informative Prüfzusammenfassung gemäß BNetzA‑Anforderungen auf Basis Ihrer Messreihen, inkl. Links zur Allgemeinverfügung/Handreichung sowie einfacher Minderungsabschätzung.  
+  ![Minderleistungsprüfungsbericht – PDF](images/Minderleistungspruefungsbericht-PDF-Export.png)
+- Minderleistungsprüfung – Messreihe: Nimmt auch die Messpunkte der Beurteilung mit auf.  
+  ![Minderleistungsprüfung – Messreihe](images/Minderleistungspruefung-Messreihe.png)
+- Ausgewählte Werte (PDF-Export): Export der vom Nutzer selektierten Zeilen aus dem Grid. Mit Schaubild, Statistik und gelistet in sauberem Tabellenlayout mit lesbarer Datum/Zeit‑Formatierung.  
+  ![Ausgewählte Werte – PDF](images/selected-values-PDF-Export.png)
 
 ## Installation (lokal)
 
