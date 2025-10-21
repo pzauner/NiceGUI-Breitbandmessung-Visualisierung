@@ -963,8 +963,8 @@ with ui.row().classes('w-full gap-4 p-4'):
                         ui.separator()
                         
                         ui.label('Vertragliche Geschwindigkeiten eingeben:').classes('text-md font-semibold pt-2')
-                        contract_dl = ui.number('Download (Mbit/s)', value=100, min=1).classes('w-full')
-                        contract_ul = ui.number('Upload (Mbit/s)', value=50, min=1).classes('w-full')
+                        contract_dl = ui.number('Download (Mbit/s)', value=300, min=1).classes('w-full')
+                        contract_ul = ui.number('Upload (Mbit/s)', value=150, min=1).classes('w-full')
                         
                         # Zeitraum-Auswahl (Alle, 30 Tage, 90 Tage)
                         timeframe_select = ui.select(

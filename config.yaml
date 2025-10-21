@@ -1,7 +1,7 @@
 # Konfiguration für Breitbandmessung Visualisierung
 data:
-  #measurements_path: "/storage/data/messprotokolle"
-  measurements_path: "sample/messprotokolle"
+  measurements_path: "/storage/data/messprotokolle"
+
 ui:
   title: "Breitbandmessung Visualisierung"
   port: 9191
