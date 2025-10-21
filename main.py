@@ -787,6 +787,13 @@ with ui.row().classes('w-full gap-4 p-4'):
         with ui.card().classes('w-full h-[75vh]'):
             ui.label('Messdaten').classes('text-lg font-bold')
             
+            # Initial nach Zeitraum filtern
+            _initial_selected = timeframe_select.value
+            _initial_measurements = (
+                all_measurements if _initial_selected == 'all'
+                else filter_measurements_by_timeframe(all_measurements, int(_initial_selected))
+            )
+
             grid_data = [
                 {
                     'datetime': m['datetime'].isoformat(),
@@ -796,7 +803,7 @@ with ui.row().classes('w-full gap-4 p-4'):
                     'os': m['os'],
                     'browser': m['browser'],
                 }
-                for m in all_measurements
+                for m in _initial_measurements
             ]
             
             grid = ui.aggrid({
@@ -1338,8 +1345,13 @@ with ui.row().classes('w-full gap-4 p-4'):
                 plot_container.figure.tight_layout()
                 plot_container.update()
             
-            # Initial rendern
-            update_line_plot_data()
+            # Initial rendern mit aktuellem Zeitraum-Filter
+            _sel = timeframe_select.value
+            _initial_plot_data = (
+                all_measurements if _sel == 'all'
+                else filter_measurements_by_timeframe(all_measurements, int(_sel))
+            )
+            update_line_plot_data(_initial_plot_data)
             
             # Update wenn Chips selektiert werden
             show_download.on_selection_change(lambda: update_line_plot_data())
