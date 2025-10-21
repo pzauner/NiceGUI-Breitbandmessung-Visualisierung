@@ -1,0 +1,15 @@
+version: "3.9"
+services:
+  app:
+    build: .
+    container_name: breitband-app
+    restart: unless-stopped
+    ports:
+      - "9191:9191"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MPLBACKEND=Agg
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+      - /storage/data/messprotokolle:/storage/data/messprotokolle:ro
+
