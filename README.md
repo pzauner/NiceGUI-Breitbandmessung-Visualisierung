@@ -98,7 +98,7 @@ version: "3.9"
 services:
   app:
     build: .
-    container_name: breitband-app
+    container_name: breitband-nicegui-app
     restart: unless-stopped
     ports:
       - "9191:9191"  # host:container, muss mit config.yaml ui.port übereinstimmen
