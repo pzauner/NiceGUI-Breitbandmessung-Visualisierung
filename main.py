@@ -3,7 +3,7 @@ import pandas as pd
 from pathlib import Path
 from datetime import datetime, timedelta
 import csv
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from nicegui import ui
 import io
 from reportlab.lib.pagesizes import A4
@@ -349,12 +349,45 @@ def generate_bnetza_pdf(result: Dict, contract_download: float, contract_upload:
     stats_table.setStyle(get_header_table_style())
     story.append(stats_table)
     
+    # Vereinfachte Minderung nach §57 Abs. 4 TKG (Satz 2)
+    # Annahme: vertraglich maximal/normal/minimal = contract_* (vereinfachter Fall)
+    try:
+        avg_dl = float(stats.get('avg_download', 0.0))
+        avg_ul = float(stats.get('avg_upload', 0.0))
+        c_dl = float(stats.get('contract_download', contract_download))
+        c_ul = float(stats.get('contract_upload', contract_upload))
+        ratio_dl = min(avg_dl / c_dl, 1.0) if c_dl > 0 else 1.0
+        ratio_ul = min(avg_ul / c_ul, 1.0) if c_ul > 0 else 1.0
+        minderung_dl = max(0.0, (1.0 - ratio_dl) * 100.0)
+        minderung_ul = max(0.0, (1.0 - ratio_ul) * 100.0)
+        empfohlene_minderung = max(minderung_dl, minderung_ul)
+        story.append(Spacer(1, 0.2*inch))
+        story.append(Paragraph("Vereinfachte Minderungsberechnung (§57 Abs. 4 TKG)", styles_dict['heading']))
+        mind_table = Table([
+            ['Größe', 'Vertrag (Mbit/s)', 'Ø gemessen (Mbit/s)', 'Minderung %'],
+            ['Download', f"{c_dl:.0f}", f"{avg_dl:.2f}", f"{minderung_dl:.1f}%"],
+            ['Upload', f"{c_ul:.0f}", f"{avg_ul:.2f}", f"{minderung_ul:.1f}%"],
+            ['Empfehlung', '-', '-', f"{empfohlene_minderung:.1f}%"],
+        ], colWidths=[1.4*inch, 1.3*inch, 1.6*inch, 1.2*inch])
+        mind_table.setStyle(get_header_table_style())
+        story.append(mind_table)
+        story.append(Paragraph("Hinweis: Vereinfachte Berechnung. Maßgeblich sind die Vorgaben der BNetzA und Ihr individueller Vertrag.", styles_dict['normal']))
+    except Exception:
+        pass
+    
     # Warnungen
     if result['warnings']:
         story.append(Spacer(1, 0.2*inch))
         story.append(Paragraph("Warnungen", styles_dict['heading']))
         for warning in result['warnings']:
             story.append(Paragraph(f"⚠ {warning}", styles_dict['normal']))
+
+    # Verweise
+    story.append(Spacer(1, 0.2*inch))
+    story.append(Paragraph("Weiterführende Informationen", styles_dict['heading']))
+    story.append(Paragraph('Bundesnetzagentur: Internetgeschwindigkeit – Nachweisverfahren: <a href="https://www.bundesnetzagentur.de/DE/Vportal/TK/InternetTelefon/Internetgeschwindigkeit/start.html">Link</a>', styles_dict['normal']))
+    story.append(Paragraph('Allgemeinverfügung (Az.: 120-3945-1/2021): <a href="https://www.bundesnetzagentur.de/DE/Fachthemen/Telekommunikation/Breitband/Breitbandgeschwindigkeiten/Allgemeinverfuegung_neu.pdf?__blob=publicationFile&v=1">PDF</a>', styles_dict['normal']))
+    story.append(Paragraph('Handreichung zum Nachweisverfahren: <a href="https://www.bundesnetzagentur.de/DE/Fachthemen/Telekommunikation/Breitband/Breitbandgeschwindigkeiten/Handreichung_neu.pdf?__blob=publicationFile&v=1">PDF</a>', styles_dict['normal']))
     
     # Messdaten Tabelle
     story.append(PageBreak())
@@ -756,6 +789,8 @@ def select_bnetza_subset(measurements: List[Dict]) -> List[Dict] | None:
 # ============================================================================
 all_measurements = load_measurements()
 stats_all = calculate_statistics(all_measurements)
+# aktuell im Plot anzuzeigende Messungen (Zeitfilter/Selektion)
+current_plot_measurements: List[Dict] = all_measurements
 
 # ============================================================================
 # UI AUFBAU
@@ -1081,11 +1116,23 @@ with ui.row().classes('w-full gap-4 p-4'):
                                     # Dialog schließen und direkt PDF erzeugen
                                     dialog.close()
                                     try:
+                                        # Gemessene Daten für PDF aufbereiten
+                                        pdf_rows = [
+                                            {
+                                                'Datum/Uhrzeit': m['datetime'].isoformat(),
+                                                'Download (Mbit/s)': m['download'],
+                                                'Upload (Mbit/s)': m['upload'],
+                                                'Ping (ms)': m['ping'],
+                                                'Betriebssystem': m['os'],
+                                                'Internet-Browser': m['browser'],
+                                            }
+                                            for m in base_measurements
+                                        ]
                                         pdf_bytes = generate_bnetza_pdf(
                                             result,
                                             float(contract_dl.value),
                                             float(contract_ul.value),
-                                            []
+                                            pdf_rows
                                         )
                                         ui.download(pdf_bytes, f'bnetza_bericht_{datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf')
                                         ui.notification('BNetzA PDF exportiert (Prüfung nicht möglich)', type='warning')
@@ -1121,11 +1168,23 @@ with ui.row().classes('w-full gap-4 p-4'):
                             
                             print("DEBUG: generating PDF instead of opening result dialog...")
                             try:
+                                # Gemessene Daten für PDF aufbereiten (verwendete Daten)
+                                pdf_rows = [
+                                    {
+                                        'Datum/Uhrzeit': m['datetime'].isoformat(),
+                                        'Download (Mbit/s)': m['download'],
+                                        'Upload (Mbit/s)': m['upload'],
+                                        'Ping (ms)': m['ping'],
+                                        'Betriebssystem': m['os'],
+                                        'Internet-Browser': m['browser'],
+                                    }
+                                    for m in used_measurements
+                                ]
                                 pdf_bytes = generate_bnetza_pdf(
                                     result,
                                     float(contract_dl.value),
                                     float(contract_ul.value),
-                                    []
+                                    pdf_rows
                                 )
                                 ui.download(pdf_bytes, f'bnetza_bericht_{datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf')
                                 ui.notification('BNetzA PDF exportiert', type='positive')
@@ -1263,7 +1322,10 @@ with ui.row().classes('w-full gap-4 p-4'):
             
             def update_line_plot_data(measurements: List[Dict] = None):
                 """Aktualisiert den Plot mit den übergebenen Messungen."""
-                plot_data = measurements if measurements else all_measurements
+                global current_plot_measurements
+                if measurements is not None:
+                    current_plot_measurements = measurements
+                plot_data = current_plot_measurements
                 
                 if not plot_data:
                     return
@@ -1354,9 +1416,9 @@ with ui.row().classes('w-full gap-4 p-4'):
             update_line_plot_data(_initial_plot_data)
             
             # Update wenn Chips selektiert werden
-            show_download.on_selection_change(lambda: update_line_plot_data())
-            show_upload.on_selection_change(lambda: update_line_plot_data())
-            show_ping.on_selection_change(lambda: update_line_plot_data())
+            show_download.on_selection_change(lambda: update_line_plot_data(None))
+            show_upload.on_selection_change(lambda: update_line_plot_data(None))
+            show_ping.on_selection_change(lambda: update_line_plot_data(None))
 
 # ============================================================================
 # EVENT HANDLER
@@ -1404,7 +1466,7 @@ def on_timeframe_change():
     stats_table.rows = new_stats_rows
     stats_table.update()
     
-    # Plot aktualisieren
+    # Plot aktualisieren und globalen Zustand setzen
     update_line_plot_data(filtered)
 
 timeframe_select.on('update:model-value', on_timeframe_change)
