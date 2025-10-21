@@ -761,7 +761,7 @@ with ui.row().classes('w-full gap-4 p-4'):
                     '7': 'Letzte 7 Tage',
                     '30': 'Letzte 30 Tage'
                 },
-                value='all',
+                value='7',
                 label='Zeitraum'
             ).classes('w-full')
         
