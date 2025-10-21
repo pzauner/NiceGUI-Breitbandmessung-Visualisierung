@@ -784,7 +784,7 @@ with ui.row().classes('w-full gap-4 p-4'):
             ).classes('w-full')
         
         # AGGrid für Messreihen
-        with ui.card().classes('w-full'):
+        with ui.card().classes('w-full h-[75vh]'):
             ui.label('Messdaten').classes('text-lg font-bold')
             
             grid_data = [
@@ -810,11 +810,12 @@ with ui.row().classes('w-full gap-4 p-4'):
                 ],
                 'rowData': grid_data,
                 'rowSelection': {'mode': 'multiRow'},
-                'pagination': {'pageSize': 25},
-                'paginationPageSize': 25,
-            }).classes('max-h-[70vh] w-full')
+                'pagination': {'pageSize': 20},
+                'paginationPageSize': 20,
+                'domLayout': 'normal'
+            }).classes('w-full h-[72vh]')
             
-            # Export-Buttons
+            # Export-Buttons (unten, mit Abstand)
             async def export_pdf():
                 selected_rows = await grid.get_selected_rows()
                 if not selected_rows:
@@ -957,11 +958,6 @@ with ui.row().classes('w-full gap-4 p-4'):
                             notif.delete()
                         except Exception:
                             pass
-            
-            with ui.row().classes('gap-2 pt-2'):
-                ui.button('Als PDF exportieren', on_click=export_pdf, icon='file_download')
-                ui.button('Als CSV exportieren', on_click=export_csv, icon='table_chart')
-                ui.button('Daten neuladen', on_click=reload_data, icon='refresh')
             
             # BNetzA Checker Button
             async def check_bnetza():
@@ -1139,8 +1135,16 @@ with ui.row().classes('w-full gap-4 p-4'):
                             ui.button('Abbrechen', on_click=dialog.close)
 
                 dialog.open()
+                
+            with ui.row().classes('gap-2 pt-2'):
+                ui.button('Als PDF exportieren', on_click=export_pdf, icon='file_download')
+                ui.button('Als CSV exportieren', on_click=export_csv, icon='table_chart')
+                ui.button('Daten neuladen', on_click=reload_data, icon='refresh')
+                ui.button('BNetzA Checker', on_click=check_bnetza, icon='verified')
             
-            ui.button('BNetzA Checker', on_click=check_bnetza, icon='verified')
+            
+            
+            
             
             # Helper-Funktion für Stats-Tabelle UND Plot Updates
             def update_stats_and_plot(selected_rows: List[Dict] = None):
@@ -1240,6 +1244,15 @@ with ui.row().classes('w-full gap-4 p-4'):
             
             # Matplotlib-basiertes Plot mit dual-axis
             plot_container = ui.matplotlib(figsize=tuple(config['plot']['figsize']))
+            async def download_plot_image():
+                # Figure als PNG in Bytes exportieren
+                buf = io.BytesIO()
+                plot_container.figure.savefig(buf, format='png', dpi=150, bbox_inches='tight')
+                buf.seek(0)
+                ui.download(buf.getvalue(), f'plot_{datetime.now().strftime("%Y%m%d_%H%M%S")}.png')
+            
+            with ui.row().classes('gap-2 pb-2'):
+                ui.button('Schaubild herunterladen', on_click=download_plot_image, icon='image')
             
             def update_line_plot_data(measurements: List[Dict] = None):
                 """Aktualisiert den Plot mit den übergebenen Messungen."""
