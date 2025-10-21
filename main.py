@@ -251,18 +251,26 @@ def markdown_to_pdf(markdown_content: str, rows: List[Dict], filename: str = "me
     story.append(PageBreak())
     story.append(Paragraph("Messdaten", styles_dict['heading']))
     
-    measurements_data = [['Datum/Uhrzeit', 'Download', 'Upload', 'Ping', 'OS', 'Browser']]
+    # Messdaten kompakt formatieren
+    header = ['Datum/Uhrzeit', 'Download', 'Upload', 'Ping', 'OS', 'Browser']
+    body = []
     for row in rows:
-        measurements_data.append([
-            row['Datum/Uhrzeit'],
-            row['Download (Mbit/s)'],
-            row['Upload (Mbit/s)'],
-            row['Ping (ms)'],
-            row['Betriebssystem'],
-            row['Internet-Browser'],
+        # Datum lesbar
+        dt_disp = row['Datum/Uhrzeit']
+        try:
+            dt_disp = datetime.fromisoformat(row['Datum/Uhrzeit']).strftime('%d.%m.%Y %H:%M:%S')
+        except Exception:
+            pass
+        body.append([
+            Paragraph(dt_disp, styles_dict['small']),
+            Paragraph(f"{float(row['Download (Mbit/s)']):.2f}", styles_dict['small']),
+            Paragraph(f"{float(row['Upload (Mbit/s)']):.2f}", styles_dict['small']),
+            Paragraph(f"{float(row['Ping (ms)']):.0f}", styles_dict['small']),
+            Paragraph(str(row['Betriebssystem']), styles_dict['small']),
+            Paragraph(str(row['Internet-Browser']), styles_dict['small']),
         ])
-    
-    measurements_table = Table(measurements_data, colWidths=[1.5*inch, 0.8*inch, 0.8*inch, 0.6*inch, 1.2*inch, 1.5*inch])
+
+    measurements_table = Table([header] + body, colWidths=[1.8*inch, 0.9*inch, 0.9*inch, 0.6*inch, 1.0*inch, 2.4*inch])
     measurements_table.setStyle(get_header_table_style())
     story.append(measurements_table)
     
@@ -285,11 +293,11 @@ def generate_bnetza_pdf(result: Dict, contract_download: float, contract_upload:
     story = []
     
     # Titel
-    story.append(Paragraph("Prüfzusammenfassung gemäß BNetzA‑Anforderungen (informativ)", styles_dict['title']))
+    story.append(Paragraph("Prüfzusammenfassung gemäß BNetzA-Anforderungen (informativ)", styles_dict['title']))
     story.append(Paragraph(f"<b>Generiert:</b> {datetime.now().strftime('%d.%m.%Y %H:%M:%S')}", styles_dict['normal']))
     story.append(Spacer(1, 0.05*inch))
     story.append(Paragraph(
-        "Diese Auswertung ist eine Orientierung anhand Ihrer Messreihen (Breitbandmessung Desktop‑App).\n"
+        "Diese Auswertung ist eine Orientierung anhand Ihrer Messreihen (Breitbandmessung Desktop-App).\n"
         "Der rechtssichere Nachweis erfolgt ausschließlich über das Messprotokoll der Bundesnetzagentur.",
         styles_dict['normal'])
     )
@@ -308,7 +316,7 @@ def generate_bnetza_pdf(result: Dict, contract_download: float, contract_upload:
     story.append(Spacer(1, 0.2*inch))
     
     # Anforderungen Status
-    story.append(Paragraph("Kriterien gemäß BNetzA‑Anforderungen (informativ)", styles_dict['heading']))
+    story.append(Paragraph("Kriterien gemäß BNetzA-Anforderungen (informativ)", styles_dict['heading']))
     if result['valid']:
         story.append(Paragraph("✅ Kriterien erfüllt", styles_dict['status_pass']))
     else:
@@ -351,7 +359,8 @@ def generate_bnetza_pdf(result: Dict, contract_download: float, contract_upload:
         ['Minimalgeschwindigkeit unterschritten (DL/UL)', f"{stats.get('below_min_days_dl', 0)}/3 / {stats.get('below_min_days_ul', 0)}/3"],
         ['Normalgeschwindigkeit ≥ Vertrag (DL/UL)', f"{stats.get('percentage_normal_dl', 0.0):.1f}% / {stats.get('percentage_normal_ul', 0.0):.1f}%"],
     ]
-    stats_table = Table(stats_data, colWidths=[3.5*inch, 1.5*inch])
+    # Werte-Spalte etwas breiter machen
+    stats_table = Table(stats_data, colWidths=[3.0*inch, 2.0*inch])
     stats_table.setStyle(get_header_table_style())
     story.append(stats_table)
     
@@ -399,24 +408,30 @@ def generate_bnetza_pdf(result: Dict, contract_download: float, contract_upload:
     story.append(PageBreak())
     story.append(Paragraph("Gemessene Daten", styles_dict['heading']))
     
-    measurements_data = [['Datum/Uhrzeit', 'Download', 'Upload', 'Ping', 'OS', 'Browser']]
+    # Messdaten kompakt formatieren wie im normalen Export
+    header = ['Datum/Uhrzeit', 'Download', 'Upload', 'Ping', 'OS', 'Browser']
+    body = []
     for row in selected_rows:
-        measurements_data.append([
-            row['Datum/Uhrzeit'],
-            row['Download (Mbit/s)'],
-            row['Upload (Mbit/s)'],
-            row['Ping (ms)'],
-            row['Betriebssystem'],
-            row['Internet-Browser'],
+        dt_disp = row['Datum/Uhrzeit']
+        try:
+            dt_disp = datetime.fromisoformat(row['Datum/Uhrzeit']).strftime('%d.%m.%Y %H:%M:%S')
+        except Exception:
+            pass
+        body.append([
+            Paragraph(dt_disp, styles_dict['small']),
+            Paragraph(f"{float(row['Download (Mbit/s)']):.2f}", styles_dict['small']),
+            Paragraph(f"{float(row['Upload (Mbit/s)']):.2f}", styles_dict['small']),
+            Paragraph(f"{float(row['Ping (ms)']):.0f}", styles_dict['small']),
+            Paragraph(str(row['Betriebssystem']), styles_dict['small']),
+            Paragraph(str(row['Internet-Browser']), styles_dict['small']),
         ])
-    
-    measurements_table = Table(measurements_data, colWidths=[1.4*inch, 0.8*inch, 0.8*inch, 0.6*inch, 1.2*inch, 1.4*inch])
+    measurements_table = Table([header] + body, colWidths=[1.8*inch, 0.9*inch, 0.9*inch, 0.6*inch, 1.0*inch, 2.4*inch])
     measurements_table.setStyle(get_header_table_style())
     story.append(measurements_table)
     
     # PDF-Metadaten setzen
     def _set_info(canvas, _doc):
-        canvas.setTitle('Prüfzusammenfassung gemäß BNetzA‑Anforderungen (informativ)')
+        canvas.setTitle('Prüfzusammenfassung gemäß BNetzA-Anforderungen (informativ)')
         canvas.setAuthor('https://github.com/pzauner/NiceGUI-Breitbandmessung-Visualisierung')
         canvas.setSubject('Informative Prüfzusammenfassung gemäß BNetzA-Kriterien auf Basis Ihrer Messreihen')
 
@@ -472,6 +487,12 @@ def get_pdf_styles():
             textColor=colors.HexColor('#ea580c'),
             fontName='Helvetica-Bold',
             spaceAfter=8
+        ),
+        'small': ParagraphStyle(
+            'Small',
+            parent=styles['Normal'],
+            fontSize=9,
+            leading=11,
         ),
     }
 
@@ -1212,7 +1233,7 @@ with ui.row().classes('w-full gap-4 p-4'):
                 ui.button('Als PDF exportieren', on_click=export_pdf, icon='file_download')
                 ui.button('Als CSV exportieren', on_click=export_csv, icon='table_chart')
                 ui.button('Daten neuladen', on_click=reload_data, icon='refresh')
-                ui.button('BNetzA Checker', on_click=check_bnetza, icon='verified')
+                ui.button('Minderleistungsprüfung', on_click=check_bnetza, icon='check_circle')
             
             
             
