@@ -285,8 +285,14 @@ def generate_bnetza_pdf(result: Dict, contract_download: float, contract_upload:
     story = []
     
     # Titel
-    story.append(Paragraph("BNetzA Prüfbericht", styles_dict['title']))
+    story.append(Paragraph("Prüfzusammenfassung gemäß BNetzA‑Anforderungen (informativ)", styles_dict['title']))
     story.append(Paragraph(f"<b>Generiert:</b> {datetime.now().strftime('%d.%m.%Y %H:%M:%S')}", styles_dict['normal']))
+    story.append(Spacer(1, 0.05*inch))
+    story.append(Paragraph(
+        "Diese Auswertung ist eine Orientierung anhand Ihrer Messreihen (Breitbandmessung Desktop‑App).\n"
+        "Der rechtssichere Nachweis erfolgt ausschließlich über das Messprotokoll der Bundesnetzagentur.",
+        styles_dict['normal'])
+    )
     story.append(Spacer(1, 0.2*inch))
     
     # Vertragsparameter
@@ -302,28 +308,28 @@ def generate_bnetza_pdf(result: Dict, contract_download: float, contract_upload:
     story.append(Spacer(1, 0.2*inch))
     
     # Anforderungen Status
-    story.append(Paragraph("BNetzA Anforderungen", styles_dict['heading']))
+    story.append(Paragraph("Kriterien gemäß BNetzA‑Anforderungen (informativ)", styles_dict['heading']))
     if result['valid']:
-        story.append(Paragraph("✅ Anforderungen erfüllt", styles_dict['status_pass']))
+        story.append(Paragraph("✅ Kriterien erfüllt", styles_dict['status_pass']))
     else:
-        story.append(Paragraph("❌ Anforderungen NICHT erfüllt", styles_dict['status_fail']))
+        story.append(Paragraph("❌ Kriterien nicht erfüllt", styles_dict['status_fail']))
         story.append(Spacer(1, 0.1*inch))
-        story.append(Paragraph("<b>Fehler:</b>", styles_dict['normal']))
+        story.append(Paragraph("<b>Hinweise:</b>", styles_dict['normal']))
         for error in result['errors']:
             story.append(Paragraph(f"• {error}", styles_dict['normal']))
     
     story.append(Spacer(1, 0.2*inch))
     
-    # Minderleistung
-    story.append(Paragraph("Minderleistungsprüfung", styles_dict['heading']))
+    # Minderleistung (informativ)
+    story.append(Paragraph("Hinweise auf Minderleistung (informativ)", styles_dict['heading']))
     if result['valid']:
         if result['minderleistung']:
-            story.append(Paragraph("⚠️ MINDERLEISTUNG ERKANNT", styles_dict['status_warning']))
+            story.append(Paragraph("⚠️ Hinweis: Kriterien deuten auf Minderleistung hin", styles_dict['status_warning']))
             story.append(Paragraph(result['minderleistung_reason'], styles_dict['normal']))
         else:
-            story.append(Paragraph("✓ Keine Minderleistung erkannt", styles_dict['status_pass']))
+            story.append(Paragraph("✓ Kein Hinweis auf Minderleistung", styles_dict['status_pass']))
     else:
-        story.append(Paragraph("Prüfung nicht möglich - Anforderungen nicht erfüllt", styles_dict['normal']))
+        story.append(Paragraph("Bewertung nicht möglich – Mindestkriterien (30 Messungen, 3 Tage, Abstände) nicht erfüllt", styles_dict['normal']))
     
     story.append(Spacer(1, 0.2*inch))
     
@@ -410,9 +416,9 @@ def generate_bnetza_pdf(result: Dict, contract_download: float, contract_upload:
     
     # PDF-Metadaten setzen
     def _set_info(canvas, _doc):
-        canvas.setTitle('BNetzA Prüfbericht')
+        canvas.setTitle('Prüfzusammenfassung gemäß BNetzA‑Anforderungen (informativ)')
         canvas.setAuthor('https://github.com/pzauner/NiceGUI-Breitbandmessung-Visualisierung')
-        canvas.setSubject('BNetzA Prüfbericht zur erheblichen, kontinuierlichen oder regelmäßig wiederkehrenden Abweichung bei der Geschwindigkeit bei Festnetz-Internetzugängen')
+        canvas.setSubject('Informative Prüfzusammenfassung gemäß BNetzA-Kriterien auf Basis Ihrer Messreihen')
 
     doc.build(story, onFirstPage=_set_info, onLaterPages=_set_info)
     buffer.seek(0)
